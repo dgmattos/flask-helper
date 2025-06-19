@@ -6,8 +6,13 @@ Ela automatiza ações comuns como:
 - 🐍 Criar um ambiente virtual (`venv`)
 - 📦 Instalar dependências do `requirements.txt`
 - 🚀 Iniciar o app Flask com um clique
+- ✨ Iniciar um novo projeto Flask a partir de um repositório base
 
-> A extensão só será exibida em projetos Python, detectando arquivos como `requirements.txt`, `setup.py`, `pyproject.toml` ou `.py`.
+> A extensão só será exibida em projetos Python, detectando arquivos como `requirements.txt`, `setup.py`, `pyproject.toml` ou `.py`.  
+> Se nenhum arquivo `.py` for encontrado, a extensão oferece a opção de **iniciar um novo projeto Flask automaticamente**, incluindo:
+> - Criação do `venv`
+> - Instalação do Flask
+> - Clonagem do repositório: [br.com.maveric.flask.start](https://github.com/dgmattos/br.com.maveric.flask.start)
 
 ---
 

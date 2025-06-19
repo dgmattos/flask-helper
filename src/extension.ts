@@ -2,35 +2,37 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+let isPythonFlaskProject = false;
+let hasPythonFiles = false;
+
 export function activate(context: vscode.ExtensionContext) {
-  const isPythonProject = async (): Promise<boolean> => {
+  const checkPythonEnvironment = async (): Promise<void> => {
     const folders = vscode.workspace.workspaceFolders;
-    if (!folders) return false;
+    if (!folders) return;
 
     for (const folder of folders) {
       const folderPath = folder.uri.fsPath;
 
-      // Verifica arquivos típicos de projeto Python
-      const pythonIndicators = ['requirements.txt', 'pyproject.toml', 'setup.py'];
-      for (const file of pythonIndicators) {
-        if (fs.existsSync(path.join(folderPath, file))) return true;
+      const indicators = ['requirements.txt', 'pyproject.toml', 'run.py'];
+      for (const file of indicators) {
+        const fullPath = path.join(folderPath, file);
+        if (fs.existsSync(fullPath)) {
+          const content = fs.readFileSync(fullPath, 'utf8');
+          if (content.includes('flask')) {
+            isPythonFlaskProject = true;
+          }
+        }
       }
 
-      // Verifica se há arquivos .py
       const files = fs.readdirSync(folderPath);
-      if (files.some(f => f.endsWith('.py'))) return true;
+      if (files.some(f => f.endsWith('.py'))) {
+        hasPythonFiles = true;
+        isPythonFlaskProject = true;
+      }
     }
-
-    return false;
   };
 
-  isPythonProject().then((isPython) => {
-    if (!isPython) {
-      console.log('⚠️ Projeto não é Python. Extensão não exibirá a view.');
-      return;
-    }
-
-    // Comandos
+  checkPythonEnvironment().then(() => {
     const runCommand = (cmd: string, msg: string) => {
       const terminal = vscode.window.createTerminal("Flask Helper");
       terminal.show();
@@ -47,6 +49,18 @@ export function activate(context: vscode.ExtensionContext) {
       }),
       vscode.commands.registerCommand('flaskHelper.runFlask', () => {
         runCommand('python -m flask run --debug', 'Iniciando Flask App...');
+      }),
+      vscode.commands.registerCommand('flaskHelper.installFlask', () => {
+        runCommand('pip install flask', 'Instalando Flask...');
+      }),
+      vscode.commands.registerCommand('flaskHelper.initFlaskProject', () => {
+        const terminal = vscode.window.createTerminal("Iniciando Flask");
+        terminal.show();
+        terminal.sendText('python -m venv venv');
+        terminal.sendText('venv/Scripts/activate');
+        terminal.sendText('pip install flask');
+        terminal.sendText('git clone https://github.com/dgmattos/br.com.maveric.flask.start .');
+        vscode.window.showInformationMessage('Novo projeto Flask sendo inicializado...');
       })
     );
 
@@ -63,21 +77,30 @@ class FlaskHelperProvider implements vscode.TreeDataProvider<FlaskCommandItem> {
   }
 
   getChildren(): FlaskCommandItem[] {
+    if (!isPythonFlaskProject) {
+      return [
+        new FlaskCommandItem('✨ Iniciar nova aplicação Flask', 'flaskHelper.initFlaskProject')
+      ];
+    }
+
     return [
       new FlaskCommandItem('🐍 Criar venv', 'flaskHelper.createVenv'),
       new FlaskCommandItem('📦 Instalar requirements', 'flaskHelper.installReqs'),
-      new FlaskCommandItem('🚀 Rodar Flask App', 'flaskHelper.runFlask')
+      new FlaskCommandItem('🚀 Rodar Flask App', 'flaskHelper.runFlask'),
+      new FlaskCommandItem('🔧 Instalar Flask', 'flaskHelper.installFlask')
     ];
   }
 }
 
 class FlaskCommandItem extends vscode.TreeItem {
-  constructor(label: string, commandId: string) {
+  constructor(label: string, commandId?: string) {
     super(label);
-    this.command = {
-      command: commandId,
-      title: label
-    };
     this.collapsibleState = vscode.TreeItemCollapsibleState.None;
+    if (commandId) {
+      this.command = {
+        command: commandId,
+        title: label
+      };
+    }
   }
 }

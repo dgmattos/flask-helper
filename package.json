@@ -3,7 +3,7 @@
   "displayName": "Flask Helper",
   "publisher": "maveric",
   "description": "Extensão para automatizar ambiente Flask no VSCode",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engines": {
     "vscode": "^1.50.0"
   },
