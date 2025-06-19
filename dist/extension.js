@@ -103,7 +103,9 @@ function activate(context) {
             runCommand(cmd, 'Iniciando Flask App...');
         }), vscode.commands.registerCommand('flaskRunApp.installFlask', () => {
             runCommand('pip install flask', 'Instalando Flask...');
-        }), vscode.commands.registerCommand('flaskRunApp.initFlaskProject', initFlaskProject));
+        }), vscode.commands.registerCommand('flaskRunApp.initFlaskProject', initFlaskProject), vscode.commands.registerCommand('flaskRunApp.openSettings', () => {
+            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:maveric.flask-helper');
+        }));
     });
 }
 exports.activate = activate;

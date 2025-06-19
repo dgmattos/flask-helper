@@ -3,7 +3,7 @@
   "displayName": "Flask RUN APP",
   "publisher": "maveric",
   "description": "Facilite o desenvolvimento Flask no VS Code! Com esta extensão, você automatiza a criação de ambientes virtuais, instalação de dependências e execução do seu app Flask com apenas um clique. Se o projeto ainda não for uma aplicação Python, a extensão oferece a opção de iniciar uma nova solução já estruturada, pronta para começar a programar. Ideal para quem quer agilidade e organização em projetos Flask.",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "engines": {
     "vscode": "^1.50.0"
   },
