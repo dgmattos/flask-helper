@@ -13,69 +13,112 @@ exports.activate = void 0;
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
+let isPythonFlaskProject = false;
+let hasPythonFiles = false;
 function activate(context) {
-    const isPythonProject = () => __awaiter(this, void 0, void 0, function* () {
+    const checkPythonEnvironment = () => __awaiter(this, void 0, void 0, function* () {
         const folders = vscode.workspace.workspaceFolders;
         if (!folders)
-            return false;
+            return;
         for (const folder of folders) {
             const folderPath = folder.uri.fsPath;
-            // Verifica arquivos típicos de projeto Python
-            const pythonIndicators = ['requirements.txt', 'pyproject.toml', 'setup.py'];
-            for (const file of pythonIndicators) {
-                if (fs.existsSync(path.join(folderPath, file)))
-                    return true;
+            const indicators = ['requirements.txt', 'pyproject.toml', 'run.py'];
+            for (const file of indicators) {
+                const fullPath = path.join(folderPath, file);
+                if (fs.existsSync(fullPath)) {
+                    const content = fs.readFileSync(fullPath, 'utf8');
+                    if (content.includes('flask')) {
+                        isPythonFlaskProject = true;
+                    }
+                }
             }
-            // Verifica se há arquivos .py
             const files = fs.readdirSync(folderPath);
-            if (files.some(f => f.endsWith('.py')))
-                return true;
+            if (files.some(f => f.endsWith('.py'))) {
+                hasPythonFiles = true;
+                isPythonFlaskProject = true;
+            }
         }
-        return false;
     });
-    isPythonProject().then((isPython) => {
-        if (!isPython) {
-            console.log('⚠️ Projeto não é Python. Extensão não exibirá a view.');
-            return;
-        }
-        // Comandos
+    checkPythonEnvironment().then(() => {
         const runCommand = (cmd, msg) => {
-            const terminal = vscode.window.createTerminal("Flask Helper");
+            const terminal = vscode.window.createTerminal("Flask RUN APP");
             terminal.show();
             terminal.sendText(cmd);
             vscode.window.showInformationMessage(msg);
         };
-        context.subscriptions.push(vscode.commands.registerCommand('flaskHelper.createVenv', () => {
+        const initFlaskProject = () => {
+            const folders = vscode.workspace.workspaceFolders;
+            if (!folders)
+                return;
+            const rootPath = folders[0].uri.fsPath;
+            const modelPath = context.asAbsolutePath('src/modelos');
+            // Cria diretórios padrão
+            ['app', 'routes', 'templates', 'static'].forEach(dir => {
+                const fullPath = path.join(rootPath, dir);
+                if (!fs.existsSync(fullPath))
+                    fs.mkdirSync(fullPath);
+            });
+            // Copia run.py para a raiz
+            const srcRun = path.join(modelPath, 'run.py');
+            const dstRun = path.join(rootPath, 'run.py');
+            if (fs.existsSync(srcRun)) {
+                fs.copyFileSync(srcRun, dstRun);
+            }
+            // Copia requirements.txt para a raiz
+            const srcReqs = path.join(modelPath, 'requirements.txt');
+            const dstReqs = path.join(rootPath, 'requirements.txt');
+            if (fs.existsSync(srcReqs)) {
+                fs.copyFileSync(srcReqs, dstReqs);
+            }
+            // Copia index.html para templates/
+            const srcHtml = path.join(modelPath, 'index.html');
+            const dstHtml = path.join(rootPath, 'templates', 'index.html');
+            if (fs.existsSync(srcHtml)) {
+                fs.copyFileSync(srcHtml, dstHtml);
+            }
+            vscode.window.showInformationMessage('Projeto Flask inicializado com sucesso!');
+        };
+        context.subscriptions.push(vscode.commands.registerCommand('flaskRunApp.createVenv', () => {
             runCommand('python -m venv venv', 'Criando ambiente virtual...');
-        }), vscode.commands.registerCommand('flaskHelper.installReqs', () => {
+        }), vscode.commands.registerCommand('flaskRunApp.installReqs', () => {
             runCommand('pip install -r requirements.txt', 'Instalando requirements...');
-        }), vscode.commands.registerCommand('flaskHelper.runFlask', () => {
+        }), vscode.commands.registerCommand('flaskRunApp.runFlask', () => {
             runCommand('python -m flask run --debug', 'Iniciando Flask App...');
-        }));
-        vscode.window.registerTreeDataProvider('flaskHelperView', new FlaskHelperProvider());
+        }), vscode.commands.registerCommand('flaskRunApp.installFlask', () => {
+            runCommand('pip install flask', 'Instalando Flask...');
+        }), vscode.commands.registerCommand('flaskRunApp.initFlaskProject', initFlaskProject));
+        vscode.window.registerTreeDataProvider('flaskRunAppView', new flaskRunAppProvider());
     });
 }
 exports.activate = activate;
-class FlaskHelperProvider {
+class flaskRunAppProvider {
     getTreeItem(element) {
         return element;
     }
     getChildren() {
+        if (!isPythonFlaskProject) {
+            return [
+                new FlaskCommandItem('✨ Iniciar nova aplicação Flask 2.0', 'flaskRunApp.initFlaskProject')
+            ];
+        }
         return [
-            new FlaskCommandItem('🐍 Criar venv', 'flaskHelper.createVenv'),
-            new FlaskCommandItem('📦 Instalar requirements', 'flaskHelper.installReqs'),
-            new FlaskCommandItem('🚀 Rodar Flask App', 'flaskHelper.runFlask')
+            new FlaskCommandItem('🐍 Criar venv', 'flaskRunApp.createVenv'),
+            new FlaskCommandItem('📦 Instalar requirements', 'flaskRunApp.installReqs'),
+            new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'),
+            new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask')
         ];
     }
 }
 class FlaskCommandItem extends vscode.TreeItem {
     constructor(label, commandId) {
         super(label);
-        this.command = {
-            command: commandId,
-            title: label
-        };
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        if (commandId) {
+            this.command = {
+                command: commandId,
+                title: label
+            };
+        }
     }
 }
 //# sourceMappingURL=extension.js.map

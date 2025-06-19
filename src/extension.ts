@@ -34,44 +34,72 @@ export function activate(context: vscode.ExtensionContext) {
 
   checkPythonEnvironment().then(() => {
     const runCommand = (cmd: string, msg: string) => {
-      const terminal = vscode.window.createTerminal("Flask Helper");
+      const terminal = vscode.window.createTerminal("Flask RUN APP");
       terminal.show();
       terminal.sendText(cmd);
       vscode.window.showInformationMessage(msg);
     };
 
+    const initFlaskProject = () => {
+      const folders = vscode.workspace.workspaceFolders;
+      if (!folders) return;
+
+      const rootPath = folders[0].uri.fsPath;
+      const modelPath = context.asAbsolutePath('src/modelos');
+
+      // Cria diretórios padrão
+      ['app', 'routes', 'templates', 'static'].forEach(dir => {
+        const fullPath = path.join(rootPath, dir);
+        if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath);
+      });
+
+      // Copia run.py para a raiz
+      const srcRun = path.join(modelPath, 'run.py');
+      const dstRun = path.join(rootPath, 'run.py');
+      if (fs.existsSync(srcRun)) {
+        fs.copyFileSync(srcRun, dstRun);
+      }
+      // Copia requirements.txt para a raiz
+      const srcReqs = path.join(modelPath, 'requirements.txt');
+      const dstReqs = path.join(rootPath, 'requirements.txt');
+      if (fs.existsSync(srcReqs)) {
+        fs.copyFileSync(srcReqs, dstReqs);
+      }
+
+      // Copia index.html para templates/
+      const srcHtml = path.join(modelPath, 'index.html');
+      const dstHtml = path.join(rootPath, 'templates', 'index.html');
+      if (fs.existsSync(srcHtml)) {
+        fs.copyFileSync(srcHtml, dstHtml);
+      }
+
+      vscode.window.showInformationMessage('Projeto Flask inicializado com sucesso!');
+    };
+
     context.subscriptions.push(
-      vscode.commands.registerCommand('flaskHelper.createVenv', () => {
+      vscode.commands.registerCommand('flaskRunApp.createVenv', () => {
         runCommand('python -m venv venv', 'Criando ambiente virtual...');
       }),
-      vscode.commands.registerCommand('flaskHelper.installReqs', () => {
+      vscode.commands.registerCommand('flaskRunApp.installReqs', () => {
         runCommand('pip install -r requirements.txt', 'Instalando requirements...');
       }),
-      vscode.commands.registerCommand('flaskHelper.runFlask', () => {
+      vscode.commands.registerCommand('flaskRunApp.runFlask', () => {
         runCommand('python -m flask run --debug', 'Iniciando Flask App...');
       }),
-      vscode.commands.registerCommand('flaskHelper.installFlask', () => {
+      vscode.commands.registerCommand('flaskRunApp.installFlask', () => {
         runCommand('pip install flask', 'Instalando Flask...');
       }),
-      vscode.commands.registerCommand('flaskHelper.initFlaskProject', () => {
-        const terminal = vscode.window.createTerminal("Iniciando Flask");
-        terminal.show();
-        terminal.sendText('python -m venv venv');
-        terminal.sendText('venv/Scripts/activate');
-        terminal.sendText('pip install flask');
-        terminal.sendText('git clone https://github.com/dgmattos/br.com.maveric.flask.start .');
-        vscode.window.showInformationMessage('Novo projeto Flask sendo inicializado...');
-      })
+      vscode.commands.registerCommand('flaskRunApp.initFlaskProject', initFlaskProject)
     );
 
     vscode.window.registerTreeDataProvider(
-      'flaskHelperView',
-      new FlaskHelperProvider()
+      'flaskRunAppView',
+      new flaskRunAppProvider()
     );
   });
 }
 
-class FlaskHelperProvider implements vscode.TreeDataProvider<FlaskCommandItem> {
+class flaskRunAppProvider implements vscode.TreeDataProvider<FlaskCommandItem> {
   getTreeItem(element: FlaskCommandItem): vscode.TreeItem {
     return element;
   }
@@ -79,15 +107,15 @@ class FlaskHelperProvider implements vscode.TreeDataProvider<FlaskCommandItem> {
   getChildren(): FlaskCommandItem[] {
     if (!isPythonFlaskProject) {
       return [
-        new FlaskCommandItem('✨ Iniciar nova aplicação Flask', 'flaskHelper.initFlaskProject')
+        new FlaskCommandItem('✨ Iniciar nova aplicação Flask 2.0', 'flaskRunApp.initFlaskProject')
       ];
     }
 
     return [
-      new FlaskCommandItem('🐍 Criar venv', 'flaskHelper.createVenv'),
-      new FlaskCommandItem('📦 Instalar requirements', 'flaskHelper.installReqs'),
-      new FlaskCommandItem('🚀 Rodar Flask App', 'flaskHelper.runFlask'),
-      new FlaskCommandItem('🔧 Instalar Flask', 'flaskHelper.installFlask')
+      new FlaskCommandItem('🐍 Criar venv', 'flaskRunApp.createVenv'),
+      new FlaskCommandItem('📦 Instalar requirements', 'flaskRunApp.installReqs'),
+      new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'),
+      new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask')
     ];
   }
 }

@@ -1,6 +1,6 @@
-# 🚀 Flask Helper – Extensão para VSCode
+# 🚀 Flask RUN APP – Extensão para VSCode
 
-**Flask Helper** é uma extensão para Visual Studio Code que adiciona uma aba lateral com botões úteis para projetos Python com Flask.  
+**Flask RUN APP** é uma extensão para Visual Studio Code que adiciona uma aba lateral com botões úteis para projetos Python com Flask.  
 Ela automatiza ações comuns como:
 
 - 🐍 Criar um ambiente virtual (`venv`)

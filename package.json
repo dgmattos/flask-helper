@@ -1,45 +1,45 @@
 {
   "name": "flask-helper",
-  "displayName": "Flask Helper",
+  "displayName": "Flask RUN APP",
   "publisher": "maveric",
   "description": "Extensão para automatizar ambiente Flask no VSCode",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "engines": {
     "vscode": "^1.50.0"
   },
   "activationEvents": [
-    "onView:flaskHelperView"
+    "onView:flaskRunAppView"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "flaskHelper",
-          "title": "Flask Helper",
+          "id": "flaskRunApp",
+          "title": "Flask RUN APP",
           "icon": "media/icon.png"
         }
       ]
     },
     "views": {
-      "flaskHelper": [
+      "flaskRunApp": [
         {
-          "id": "flaskHelperView",
+          "id": "flaskRunAppView",
           "name": "Comandos Flask"
         }
       ]
     },
     "commands": [
       {
-        "command": "flaskHelper.createVenv",
+        "command": "flaskRunApp.createVenv",
         "title": "Criar venv"
       },
       {
-        "command": "flaskHelper.installReqs",
+        "command": "flaskRunApp.installReqs",
         "title": "Instalar requirements.txt"
       },
       {
-        "command": "flaskHelper.runFlask",
+        "command": "flaskRunApp.runFlask",
         "title": "Rodar Flask App"
       }
     ]
