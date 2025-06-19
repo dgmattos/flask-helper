@@ -8,11 +8,19 @@ Ela automatiza ações comuns como:
 - 🚀 Iniciar o app Flask com um clique
 - ✨ Iniciar um novo projeto Flask a partir de um repositório base
 
-> A extensão só será exibida em projetos Python, detectando arquivos como `requirements.txt`, `setup.py`, `pyproject.toml` ou `.py`.  
-> Se nenhum arquivo `.py` for encontrado, a extensão oferece a opção de **iniciar um novo projeto Flask automaticamente**, incluindo:
-> - Criação do `venv`
-> - Instalação do Flask
-> - Clonagem do repositório: [br.com.maveric.flask.start](https://github.com/dgmattos/br.com.maveric.flask.start)
+
+> A extensão só será exibida em projetos Python, detectando arquivos como `requirements.txt`, `run.py`, `pyproject.toml` ou `.py`.  
+> **Se o diretório atual não for uma aplicação Python, será exibida uma opção para iniciar uma nova solução com o padrão de projeto pré-definido na extensão.**
+> 
+> ### 📁 Estrutura criada ao iniciar um novo projeto Flask:
+> 
+> - `app/` (diretório para código principal)
+> - `routes/` (diretório para rotas)
+> - `templates/` (diretório para templates HTML)
+>   - `index.html` (template inicial)
+> - `static/` (diretório para arquivos estáticos)
+> - `run.py` (arquivo principal para execução do app)
+> - `requirements.txt` (dependências iniciais)
 
 ---
 
@@ -27,9 +35,23 @@ Ela automatiza ações comuns como:
 
 ---
 
+## 🙏 Agradecimentos e Créditos
+
+Agradecimentos especiais a todos que contribuíram direta ou indiretamente para o desenvolvimento desta extensão, seja com feedback, sugestões, testes ou inspiração. 
+
+- Comunidade Flask e Python
+- Usuários que testaram e sugeriram melhorias
+- [VS Code Extension API Docs](https://code.visualstudio.com/api)
+- Equipe de DT STI TJES 2025 ❤️❤️❤️
+
+---
+
 ## 💡 Sugestões ou melhorias?
 
 Sinta-se à vontade para abrir uma issue ou contribuir com PRs. Vamos deixar o mundo Flask mais rápido e simples! 😄
+
+- Git: https://github.com/dgmattos/flask-helper
+- Contato: deivid@dgmattos.com.br
 
 ---
 
