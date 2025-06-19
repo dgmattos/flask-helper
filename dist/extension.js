@@ -15,6 +15,7 @@ const fs = require("fs");
 const path = require("path");
 let isPythonFlaskProject = false;
 let hasPythonFiles = false;
+let flaskTerminal;
 function activate(context) {
     const checkPythonEnvironment = () => __awaiter(this, void 0, void 0, function* () {
         const folders = vscode.workspace.workspaceFolders;
@@ -41,11 +42,35 @@ function activate(context) {
     });
     checkPythonEnvironment().then(() => {
         const runCommand = (cmd, msg) => {
-            const terminal = vscode.window.createTerminal("Flask RUN APP");
-            terminal.show();
-            terminal.sendText(cmd);
+            var _a;
+            if (flaskTerminal) {
+                flaskTerminal.show();
+                vscode.window.showInformationMessage('O servidor Flask já está rodando.');
+                return;
+            }
+            flaskTerminal = vscode.window.createTerminal("Flask RUN APP");
+            flaskTerminal.show();
+            flaskTerminal.sendText(cmd);
             vscode.window.showInformationMessage(msg);
+            (_a = flaskTerminal.processId) === null || _a === void 0 ? void 0 : _a.then(() => treeProvider.refresh());
         };
+        const stopFlask = () => {
+            if (flaskTerminal) {
+                flaskTerminal.dispose();
+                flaskTerminal = undefined;
+                vscode.window.showInformationMessage('Servidor Flask parado.');
+                treeProvider.refresh();
+            }
+            else {
+                vscode.window.showInformationMessage('Nenhum servidor Flask em execução.');
+            }
+        };
+        vscode.window.onDidCloseTerminal((terminal) => {
+            if (terminal === flaskTerminal) {
+                flaskTerminal = undefined;
+                treeProvider.refresh();
+            }
+        });
         const initFlaskProject = () => __awaiter(this, void 0, void 0, function* () {
             const confirm = yield vscode.window.showInformationMessage('Deseja criar a estrutura de pastas e arquivos padrão do projeto Flask?', { modal: true }, 'Sim', 'Não');
             if (confirm !== 'Sim') {
@@ -104,13 +129,13 @@ function activate(context) {
             const cmd = vscode.workspace.getConfiguration().get('flaskHelper.installReqs') || 'venv\\Scripts\\pip install -r requirements.txt';
             runCommand(cmd, 'Instalando requirements...');
         }), vscode.commands.registerCommand('flaskRunApp.runFlask', () => {
-            const cmd = vscode.workspace.getConfiguration().get('flaskHelper.runFlask') || 'venv\\Scripts\\python run.py';
+            const cmd = vscode.workspace.getConfiguration().get('flaskHelper.runFlask') || 'venv\\Scripts\\python flask run --debug';
             runCommand(cmd, 'Iniciando Flask App...');
         }), vscode.commands.registerCommand('flaskRunApp.installFlask', () => {
             runCommand('pip install flask', 'Instalando Flask...');
         }), vscode.commands.registerCommand('flaskRunApp.initFlaskProject', initFlaskProject), vscode.commands.registerCommand('flaskRunApp.openSettings', () => {
             vscode.commands.executeCommand('workbench.action.openSettings', '@ext:maveric.flask-helper');
-        }));
+        }), vscode.commands.registerCommand('flaskRunApp.stopFlask', stopFlask));
     });
 }
 exports.activate = activate;
@@ -132,12 +157,18 @@ class flaskRunAppProvider {
                 new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask')
             ];
         }
-        return [
+        const items = [
             new FlaskCommandItem('🐍 Criar venv', 'flaskRunApp.createVenv'),
             new FlaskCommandItem('📦 Instalar requirements', 'flaskRunApp.installReqs'),
-            new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'),
             new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask')
         ];
+        if (flaskTerminal) {
+            items.unshift(new FlaskCommandItem('🚫 Parar Flask App', 'flaskRunApp.stopFlask'));
+        }
+        else {
+            items.unshift(new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'));
+        }
+        return items;
     }
 }
 class FlaskCommandItem extends vscode.TreeItem {

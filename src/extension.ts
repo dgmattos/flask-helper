@@ -179,11 +179,9 @@ class flaskRunAppProvider implements vscode.TreeDataProvider<FlaskCommandItem> {
       new FlaskCommandItem('📦 Instalar requirements', 'flaskRunApp.installReqs'),
       new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask')
     ];
-    if (flaskTerminal) {
-      items.unshift(new FlaskCommandItem('🚫 Parar Flask App', 'flaskRunApp.stopFlask'));
-    } else {
-      items.unshift(new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'));
-    }
+
+    items.unshift(new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'));
+
     return items;
   }
 }
