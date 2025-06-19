@@ -4,6 +4,7 @@ import * as path from 'path';
 
 let isPythonFlaskProject = false;
 let hasPythonFiles = false;
+let flaskTerminal: vscode.Terminal | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
   const checkPythonEnvironment = async (): Promise<void> => {
@@ -34,11 +35,35 @@ export function activate(context: vscode.ExtensionContext) {
 
   checkPythonEnvironment().then(() => {
     const runCommand = (cmd: string, msg: string) => {
-      const terminal = vscode.window.createTerminal("Flask RUN APP");
-      terminal.show();
-      terminal.sendText(cmd);
+      if (flaskTerminal) {
+        flaskTerminal.show();
+        vscode.window.showInformationMessage('O servidor Flask já está rodando.');
+        return;
+      }
+      flaskTerminal = vscode.window.createTerminal("Flask RUN APP");
+      flaskTerminal.show();
+      flaskTerminal.sendText(cmd);
       vscode.window.showInformationMessage(msg);
+      flaskTerminal.processId?.then(() => treeProvider.refresh());
     };
+
+    const stopFlask = () => {
+      if (flaskTerminal) {
+        flaskTerminal.dispose();
+        flaskTerminal = undefined;
+        vscode.window.showInformationMessage('Servidor Flask parado.');
+        treeProvider.refresh();
+      } else {
+        vscode.window.showInformationMessage('Nenhum servidor Flask em execução.');
+      }
+    };
+
+    vscode.window.onDidCloseTerminal((terminal) => {
+      if (terminal === flaskTerminal) {
+        flaskTerminal = undefined;
+        treeProvider.refresh();
+      }
+    });
 
     const initFlaskProject = async () => {
       const confirm = await vscode.window.showInformationMessage(
@@ -114,7 +139,7 @@ export function activate(context: vscode.ExtensionContext) {
         runCommand(cmd, 'Instalando requirements...');
       }),
       vscode.commands.registerCommand('flaskRunApp.runFlask', () => {
-        const cmd = vscode.workspace.getConfiguration().get<string>('flaskHelper.runFlask') || 'venv\\Scripts\\python run.py';
+        const cmd = vscode.workspace.getConfiguration().get<string>('flaskHelper.runFlask') || 'venv\\Scripts\\python flask run --debug';
         runCommand(cmd, 'Iniciando Flask App...');
       }),
       vscode.commands.registerCommand('flaskRunApp.installFlask', () => {
@@ -123,7 +148,8 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand('flaskRunApp.initFlaskProject', initFlaskProject),
       vscode.commands.registerCommand('flaskRunApp.openSettings', () => {
         vscode.commands.executeCommand('workbench.action.openSettings', '@ext:maveric.flask-helper');
-      })
+      }),
+      vscode.commands.registerCommand('flaskRunApp.stopFlask', stopFlask)
     );
   });
 }
@@ -148,12 +174,17 @@ class flaskRunAppProvider implements vscode.TreeDataProvider<FlaskCommandItem> {
       ];
     }
 
-    return [
+    const items = [
       new FlaskCommandItem('🐍 Criar venv', 'flaskRunApp.createVenv'),
       new FlaskCommandItem('📦 Instalar requirements', 'flaskRunApp.installReqs'),
-      new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'),
       new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask')
     ];
+    if (flaskTerminal) {
+      items.unshift(new FlaskCommandItem('🚫 Parar Flask App', 'flaskRunApp.stopFlask'));
+    } else {
+      items.unshift(new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'));
+    }
+    return items;
   }
 }
 

@@ -46,7 +46,12 @@ function activate(context) {
             terminal.sendText(cmd);
             vscode.window.showInformationMessage(msg);
         };
-        const initFlaskProject = () => {
+        const initFlaskProject = () => __awaiter(this, void 0, void 0, function* () {
+            const confirm = yield vscode.window.showInformationMessage('Deseja criar a estrutura de pastas e arquivos padrão do projeto Flask?', { modal: true }, 'Sim', 'Não');
+            if (confirm !== 'Sim') {
+                vscode.window.showInformationMessage('A criação do projeto Flask foi cancelada.');
+                return;
+            }
             const folders = vscode.workspace.workspaceFolders;
             if (!folders)
                 return;
@@ -88,7 +93,7 @@ function activate(context) {
             if (typeof treeProvider !== 'undefined') {
                 treeProvider.refresh();
             }
-        };
+        });
         let treeProvider;
         treeProvider = new flaskRunAppProvider();
         vscode.window.registerTreeDataProvider('flaskRunAppView', treeProvider);
