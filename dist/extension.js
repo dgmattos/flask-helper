@@ -44,26 +44,12 @@ function activate(context) {
         const runCommand = (cmd, msg) => {
             var _a;
             if (flaskTerminal) {
-                flaskTerminal.show();
-                vscode.window.showInformationMessage('O servidor Flask já está rodando.');
-                return;
+                flaskTerminal = vscode.window.createTerminal("Flask RUN APP");
             }
-            flaskTerminal = vscode.window.createTerminal("Flask RUN APP");
             flaskTerminal.show();
             flaskTerminal.sendText(cmd);
             vscode.window.showInformationMessage(msg);
             (_a = flaskTerminal.processId) === null || _a === void 0 ? void 0 : _a.then(() => treeProvider.refresh());
-        };
-        const stopFlask = () => {
-            if (flaskTerminal) {
-                flaskTerminal.dispose();
-                flaskTerminal = undefined;
-                vscode.window.showInformationMessage('Servidor Flask parado.');
-                treeProvider.refresh();
-            }
-            else {
-                vscode.window.showInformationMessage('Nenhum servidor Flask em execução.');
-            }
         };
         vscode.window.onDidCloseTerminal((terminal) => {
             if (terminal === flaskTerminal) {
@@ -135,7 +121,7 @@ function activate(context) {
             runCommand('pip install flask', 'Instalando Flask...');
         }), vscode.commands.registerCommand('flaskRunApp.initFlaskProject', initFlaskProject), vscode.commands.registerCommand('flaskRunApp.openSettings', () => {
             vscode.commands.executeCommand('workbench.action.openSettings', '@ext:maveric.flask-helper');
-        }), vscode.commands.registerCommand('flaskRunApp.stopFlask', stopFlask));
+        }));
     });
 }
 exports.activate = activate;
@@ -154,15 +140,15 @@ class flaskRunAppProvider {
         if (!isPythonFlaskProject) {
             return [
                 new FlaskCommandItem('✨ Iniciar nova aplicação Flask', 'flaskRunApp.initFlaskProject'),
-                new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask')
+                new FlaskCommandItem('🔧 Instalar apenas Flask', 'flaskRunApp.installFlask')
             ];
         }
         const items = [
+            new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask'),
             new FlaskCommandItem('🐍 Criar venv', 'flaskRunApp.createVenv'),
             new FlaskCommandItem('📦 Instalar requirements', 'flaskRunApp.installReqs'),
-            new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask')
+            new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask')
         ];
-        items.unshift(new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'));
         return items;
     }
 }

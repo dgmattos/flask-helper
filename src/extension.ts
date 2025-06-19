@@ -4,7 +4,6 @@ import * as path from 'path';
 
 let isPythonFlaskProject = false;
 let hasPythonFiles = false;
-let flaskTerminal: vscode.Terminal | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
   const checkPythonEnvironment = async (): Promise<void> => {
@@ -35,21 +34,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   checkPythonEnvironment().then(() => {
     const runCommand = (cmd: string, msg: string) => {
-      if (flaskTerminal) {
-        flaskTerminal = vscode.window.createTerminal("Flask RUN APP");
-      }
-      flaskTerminal.show();
-      flaskTerminal.sendText(cmd);
+      const terminal = vscode.window.createTerminal("Flask RUN APP");
+      terminal.show();
+      terminal.sendText(cmd);
       vscode.window.showInformationMessage(msg);
-      flaskTerminal.processId?.then(() => treeProvider.refresh());
     };
-
-    vscode.window.onDidCloseTerminal((terminal) => {
-      if (terminal === flaskTerminal) {
-        flaskTerminal = undefined;
-        treeProvider.refresh();
-      }
-    });
 
     const initFlaskProject = async () => {
       const confirm = await vscode.window.showInformationMessage(
@@ -125,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
         runCommand(cmd, 'Instalando requirements...');
       }),
       vscode.commands.registerCommand('flaskRunApp.runFlask', () => {
-        const cmd = vscode.workspace.getConfiguration().get<string>('flaskHelper.runFlask') || 'venv\\Scripts\\python flask run --debug';
+        const cmd = vscode.workspace.getConfiguration().get<string>('flaskHelper.runFlask') || 'venv\\Scripts\\python run.py';
         runCommand(cmd, 'Iniciando Flask App...');
       }),
       vscode.commands.registerCommand('flaskRunApp.installFlask', () => {
@@ -134,6 +123,17 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand('flaskRunApp.initFlaskProject', initFlaskProject),
       vscode.commands.registerCommand('flaskRunApp.openSettings', () => {
         vscode.commands.executeCommand('workbench.action.openSettings', '@ext:maveric.flask-helper');
+      }),
+      vscode.commands.registerCommand('flaskRunApp.quickStart', async () => {
+        const terminal = vscode.window.createTerminal("Flask RUN APP");
+        terminal.show();
+        const venvCmd = vscode.workspace.getConfiguration().get<string>('flaskHelper.createVenv') || 'python -m venv venv';
+        const reqsCmd = vscode.workspace.getConfiguration().get<string>('flaskHelper.installReqs') || 'venv\\Scripts\\pip install -r requirements.txt';
+        const runCmd = vscode.workspace.getConfiguration().get<string>('flaskHelper.runFlask') || 'venv\\Scripts\\python run.py';
+        terminal.sendText(venvCmd);
+        terminal.sendText(reqsCmd);
+        terminal.sendText(runCmd);
+        vscode.window.showInformationMessage('Ambiente criado, dependências instaladas e servidor Flask iniciado!');
       })
     );
   });
@@ -159,14 +159,13 @@ class flaskRunAppProvider implements vscode.TreeDataProvider<FlaskCommandItem> {
       ];
     }
 
-    const items = [
-      new FlaskCommandItem('🔧 Instalar Flask', 'flaskRunApp.installFlask'),
+    return [
+      new FlaskCommandItem('⚡ App run', 'flaskRunApp.quickStart'),
+      new FlaskCommandItem('🔧 Instalar apenas Flask', 'flaskRunApp.installFlask'),
       new FlaskCommandItem('🐍 Criar venv', 'flaskRunApp.createVenv'),
       new FlaskCommandItem('📦 Instalar requirements', 'flaskRunApp.installReqs'),
-      new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask')
+      new FlaskCommandItem('🚀 Iniciar servidor Flask App', 'flaskRunApp.runFlask'),
     ];
-
-    return items;
   }
 }
 
