@@ -1,9 +1,9 @@
 {
   "name": "flask-helper",
   "displayName": "Flask Helper",
-  "publisher": "DGMATTOS",
+  "publisher": "maveric",
   "description": "Extensão para automatizar ambiente Flask no VSCode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.50.0"
   },
