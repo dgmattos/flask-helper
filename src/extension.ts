@@ -40,7 +40,17 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage(msg);
     };
 
-    const initFlaskProject = () => {
+    const initFlaskProject = async () => {
+      const confirm = await vscode.window.showInformationMessage(
+        'Deseja criar a estrutura de pastas e arquivos padrão do projeto Flask?',
+        { modal: true },
+        'Sim',
+        'Não'
+      );
+      if (confirm !== 'Sim') {
+        vscode.window.showInformationMessage('A criação do projeto Flask foi cancelada.');
+        return;
+      }
       const folders = vscode.workspace.workspaceFolders;
       if (!folders) return;
 
