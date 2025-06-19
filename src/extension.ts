@@ -134,6 +134,9 @@ export function activate(context: vscode.ExtensionContext) {
         terminal.sendText(reqsCmd);
         terminal.sendText(runCmd);
         vscode.window.showInformationMessage('Ambiente criado, dependências instaladas e servidor Flask iniciado!');
+      }),
+      vscode.commands.registerCommand('flaskRunApp.openBrowser', () => {
+        vscode.env.openExternal(vscode.Uri.parse('http://localhost:5000'));
       })
     );
   });
@@ -160,11 +163,12 @@ class flaskRunAppProvider implements vscode.TreeDataProvider<FlaskCommandItem> {
     }
 
     return [
-      new FlaskCommandItem('⚡ App run', 'flaskRunApp.quickStart'),
+      new FlaskCommandItem('🌐 Abrir navegador em localhost:5000', 'flaskRunApp.openBrowser'),
+      new FlaskCommandItem('⚡ Iniciar tudo (venv, requirements, servidor)', 'flaskRunApp.quickStart'),
       new FlaskCommandItem('🔧 Instalar apenas Flask', 'flaskRunApp.installFlask'),
       new FlaskCommandItem('🐍 Criar venv', 'flaskRunApp.createVenv'),
       new FlaskCommandItem('📦 Instalar requirements', 'flaskRunApp.installReqs'),
-      new FlaskCommandItem('🚀 Iniciar servidor Flask App', 'flaskRunApp.runFlask'),
+      new FlaskCommandItem('🚀 Rodar Flask App', 'flaskRunApp.runFlask'),
     ];
   }
 }
