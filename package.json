@@ -41,6 +41,10 @@
       {
         "command": "flaskRunApp.runFlask",
         "title": "Rodar Flask App"
+      },
+      {
+        "command": "flaskRunApp.openSettings",
+        "title": "Configurar comandos Flask Helper"
       }
     ],
     "configuration": {
